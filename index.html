@@ -1,0 +1,1138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQ Analyst Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            height: 100%;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            width: 20%;
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .chat-input {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-top: 1px solid #e0e0e0;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.chat-input textarea {
+    flex-grow: 1;
+    padding: 10px 40px 10px 15px; /* Right padding for the button */
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    resize: none;
+    height: 40px; /* Fixed height */
+    min-height: 40px;
+    max-height: 100px; /* Maximum height when expanded */
+    overflow-y: auto; /* Allow scrolling for long messages */
+}
+
+.send-button {
+    position: absolute;
+    right: 25px;
+    bottom: 15px;
+    background-color: black;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.send-button svg {
+    width: 15px;
+    height: 15px;
+    stroke: white;
+}
+
+.send-button:hover {
+    background-color: #333; 
+}
+        .message {
+    margin-bottom: 15px;
+    display: flex;
+    width: 100%;
+    max-width: 800px;
+}
+.message-content {
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: justify;
+}
+
+.message2-content {
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: justify;
+}
+
+.new-table-wrapper {
+    padding: 15px;
+    border-radius: 10px;
+    max-width: fit-content;
+    width: fit-content;
+    box-sizing: border-box;
+    text-align: justify;
+}
+
+.system {
+    align-self: flex-start;
+}
+.user {
+    align-self: flex-end;
+}
+.user .message-content {
+    background-color: #e0e0e0;
+    margin-left: auto;
+}
+
+.system::before {
+    content: '';
+    width: 30px;
+    height: 30px;
+    background-image: url("{{ url_for('static', filename='logo.png') }}");
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: top;
+    margin-top:10px;
+}
+.suggested-questions {
+    text-align: left;
+    width: 90%;
+    padding-left: 30px;
+    
+}
+
+/* .suggested-questions h4 {
+    margin-left: 5%; 
+} */
+
+.suggested-question-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.suggested-question {
+    background-color: #ffffff;
+    color: #007bff;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    display: block;
+    width: 90%;
+    text-align: left;
+    border: 1px solid #e0e0e0;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.welcome-content {
+    display: block;
+}
+
+.welcome-message.expanded .welcome-content {
+    display: block;
+}
+
+.welcome-message.expanded .toggle-button::after {
+    content: "▲";
+}
+
+.welcome-message .toggle-button::after {
+    content: "▼";
+}
+        .welcome-message {
+            text-align: center;
+            width: 90%; 
+            position: sticky;
+            top: 0;
+            background-color: #ffffff;
+            z-index: 10;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .toggle-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+        .suggested-question:hover {
+            background-color: #f5f5f5;
+        }
+        h2, h3, h4 {
+            color: #333;
+        }
+        #newChatBtn {
+            width: 100%;
+    padding: 8px 5px;
+    margin: 10px 0;
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #f0f0f0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+    text-align: left;
+    box-sizing: border-box;
+    height: 36px; /* Make the button thinner */
+}
+
+#newChatBtn:hover {
+    background-color: #f5f5f5;
+    
+}
+        #chatHistory {
+            overflow-y: auto;
+            max-height: calc(100% - 100px);
+        }
+        .history-item {
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: transparent;
+    border-radius: 0;
+    transition: background-color 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.history-item:hover {
+    background-color: #f0f0f0;
+    border-radius: 5px; /* This will make the edges rounded */
+}
+
+.history-item span {
+    color: #333;
+    font-size: 14px;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.delete-chat {
+    visibility: hidden;
+    color: #999;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    transition: color 0.3s ease;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.history-item:hover .delete-chat {
+    visibility: visible;
+}
+
+.delete-chat:hover {
+    color: #ff4444;
+}
+        .sidebar h2 {
+            margin-bottom: 20px;
+        }
+        .copilot-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sidebar h2.copilot-header {
+    margin-top: 2px;
+    margin-bottom: 15px;
+}
+.sidebar h3 {
+    margin: 10px 0 5px 10px;
+    font-size: 13px;
+    color:black;
+}
+
+.copilot-logo {
+    width: 30px; 
+    height: 30px; 
+    object-fit: contain;
+}
+
+.save-logo{
+    width: 20px; 
+    height: 20px; 
+    object-fit: contain;
+}
+
+.copilot-header span {
+    font-size: 16px; 
+    font-weight: bold;
+}
+
+.system .message-content {
+    margin-left: 0; /* Remove the left margin */
+}
+
+.system .message2-content {
+    margin-left: 0; /* Remove the left margin */
+}
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.message2-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.message-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px; 
+    margin-top: 5px;
+    
+}
+
+.message2-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px; 
+    margin-top: 5px;
+    
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px; 
+    color: #666;
+    padding: 0; 
+    transition: transform 0.2s;
+    line-height: 1; 
+    margin-left:10px;
+}
+
+.action-btn:hover {
+    transform: scale(1.2);
+}
+.action-btn.report-btn{
+    background-color: #e11111;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.action-btn.fix-btn {
+    background-color: #2ac82f;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.loading-container {
+    display: flex;
+    
+    margin-top: 30px;
+    
+}
+.loading-spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #000000; /* Black color */
+    border-radius: 50%;
+    width: 20px; /* Reduced size */
+    height: 20px; /* Reduced size */
+    animation: spin 1s linear infinite;
+    margin-right: 10px; /* Space between spinner and text */
+    margin-left: 10px; /* Space between logo and spinner */
+}
+
+.part1st{
+    display: block; 
+}
+
+.part2nd{
+  display: block;  
+  opacity: 0.5;
+}
+
+.loading-text {
+    font-style: italic;
+    color: #666;
+    font-size: 14px;
+    margin-top:10px;
+}
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 0.9em;
+            color: #3b3a3a;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            border-top: 1px solid #ddd;
+        }
+        th:first-child, td:first-child {
+            border-left: 1px solid #ddd;
+        }
+        th:first-child {
+            border-top-left-radius: 10px;
+        }
+        th:last-child {
+            border-top-right-radius: 10px;
+        }
+        tr:last-child td:first-child {
+            border-bottom-left-radius: 10px;
+        }
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 10px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .pagination button {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination span {
+            margin: 0 10px;
+        }
+        .message-system {
+    text-align: left;
+    width: 90%; /* Make it fit the screen width */
+    position: sticky;
+    top: 0;
+    background-color: #ffffff;
+    z-index: 10;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+   
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2 class="copilot-header">
+                <img src="{{ url_for('static', filename='jlllogo.png') }}" alt="Logo" class="copilot-logo">
+                <span>DQ Analyst Agent</span>
+            </h2>
+            <button id="newChatBtn"> ⊕ <span style="margin-left:10px">New Chat</button>
+            <h3>Recents</h3>
+            <nav id="chatHistory">
+            </nav>
+        </aside>
+        <main class="chat-area">
+            <div class="welcome-message">   </div>
+            <div class="chat-messages">
+            </div>
+            <div class="chat-input">
+                <textarea placeholder="Ask a question."></textarea>
+                <button class="send-button" onclick="sendMessage()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script>
+        const welcmMessg = document.querySelector('.welcome-message');
+        const chatMessages = document.querySelector('.chat-messages');
+        const chatInput = document.querySelector('.chat-input textarea');
+        const sidebar = document.querySelector('.sidebar');
+        const newChatBtn = document.getElementById('newChatBtn');
+        const chatHistory = document.getElementById('chatHistory');
+        let latestMessage = null;
+        let currentChatId = null;
+        let chats = JSON.parse(localStorage.getItem('chats')) || {};
+    
+        function addMessage(text, isUser = false, save = true) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = isUser ? 'message user' : 'message system';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+
+    if (!isUser) {
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = 'message-wrapper';
+
+        // Create the first table from response.answer
+        const answerTable = document.createElement('div');
+        answerTable.className = 'message-content';
+        answerTable.innerHTML = text.answer;
+        messageWrapper.appendChild(answerTable);
+
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'message-actions';
+        actionDiv.innerHTML = `
+            <button class="action-btn copy-btn" title="Copy">📋</button>
+            <button class="action-btn report-btn" onclick="generateExcel.call(this)"><span style="color: red;"><img src="{{ url_for('static', filename='save.jpg') }}" alt="save" class="save-logo"></span></button>
+        `;
+        messageWrapper.appendChild(actionDiv);
+        if(text?.suggestion){
+        // Create the second table from response.suggestion
+        const suggestionWrapper = document.createElement('div');
+        suggestionWrapper.className = 'message2-wrapper';
+
+        const suggestionHeader = document.createElement('div');
+        suggestionHeader.innerHTML = `
+            <div><br>  DQ Execution Agent has prepared the recommended suggestions based on combined knowledge: <br><br></div>
+        `;
+        suggestionWrapper.appendChild(suggestionHeader);
+
+        const suggestionTable = document.createElement('div');
+        suggestionTable.className = 'message2-content';
+        suggestionTable.innerHTML = text.suggestion;
+        suggestionWrapper.appendChild(suggestionTable);
+
+        const suggestionActions = document.createElement('div');
+        suggestionActions.className = 'message2-actions';
+        suggestionActions.innerHTML = `
+            <button class="action-btn copy-btn" title="Copy">📋</button>
+            <button class="action-btn report-btn" onclick="generateExcel.call(this)"><span style="color: red;"><img src="{{ url_for('static', filename='save.jpg') }}" alt="save" class="save-logo"></span></button>
+        `;
+        suggestionWrapper.appendChild(suggestionActions);
+
+        messageWrapper.appendChild(suggestionWrapper); 
+        }
+        messageDiv.appendChild(messageWrapper);
+    } else {
+        contentDiv.textContent = text;
+        messageDiv.appendChild(contentDiv);
+    }
+
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    if (currentChatId && save) {
+        if (!chats[currentChatId].messages.some(msg => msg.content === text)) {
+            chats[currentChatId].messages.push({ role: isUser ? 'user' : 'system', content: text });
+            saveChats();
+        }
+    }
+}
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+    if (message) {
+        console.log('Sending message:', message);
+        if (!currentChatId) {
+            createNewChat(message);
+        }
+        addMessage(message, true);
+        chatInput.value = '';
+                
+                const loadingContainer = document.createElement('div');
+loadingContainer.className = 'message system loading-container';
+loadingContainer.innerHTML = `
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Searching through the database...</div>
+`;
+                chatMessages.appendChild(loadingContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                const loadingTexts = [
+                    "Searching through the database...",
+                    "Querying the database...",
+                    "Analyzing results...",
+                    "Preparing response..."
+                ];
+                let textIndex = 0;
+
+                const textInterval = setInterval(() => {
+                    loadingContainer.querySelector('.loading-text').textContent = loadingTexts[textIndex];
+                    textIndex = (textIndex + 1) % loadingTexts.length;
+                }, 1000);
+
+                try {
+            console.log('Calling createChatCompletion');
+            const response = await createChatCompletion(message);
+            console.log('Received response:', response.answer);
+            console.log('Received suggestion:', response.suggestion);
+            // Remove loading animation
+            clearInterval(textInterval);
+            loadingContainer.remove();
+            
+            addMessage(response);
+                } catch (error) {
+                    // Remove loading animation
+                    clearInterval(textInterval);
+                    loadingContainer.remove();
+                    
+                    addMessage("Sorry, there was an error processing your request.");
+                    console.error('Error:', error);
+                }
+            }
+        }
+
+        function askQuestion(question) {
+            chatInput.value = question;
+            sendMessage();
+        }
+        function navigateToFixPage() {
+    // Navigate to the fix page
+    // window.location.href = '/fix-page';
+    console.log(latestMessage);
+    const messageWrapper = this.closest('.message2-wrapper');
+    const suggestionContent = messageWrapper.querySelector('.message2-content').innerHTML;
+    // const suggestionWrapper = messageWrapper.nextElementSibling;
+    // const suggestionContent = suggestionWrapper ? suggestionWrapper.querySelector('.message2-content').innerHTML : '';
+
+    fetch('/api/fix', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ suggestion: suggestionContent , latestMessage: latestMessage})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Table updated successfully');
+            // Open chat with the last message
+            // const lastMessage = data.latest_message;
+            // chatInput.value = lastMessage;
+            // sendMessage();
+            // Create a new div to show the table
+// Create the second table from response.suggestion
+            const newWrapper = document.createElement('div');
+            newWrapper.className = 'new-wrapper';
+
+            const newHeader = document.createElement('div');
+            newHeader.innerHTML = `<div><br>         Based on your input the <b>DQ Execution Agent</b> has applied the recommended corrections to Property Hub data.
+                This is how your data looks after you applied changes. <br><br></div>`;
+            newWrapper.appendChild(newHeader);
+
+            const newTableDiv = document.createElement('div');
+            newTableDiv.className = 'new-table-wrapper';
+            newTableDiv.innerHTML = data.new_table;
+            
+            newWrapper.appendChild(newTableDiv);
+            const newline = document.createElement('div');
+            newline.innerHTML = `<button class="action-btn copy-btn" title="Copy">📋</button>
+                <div><br></div>
+            `;
+            newWrapper.appendChild(newline);
+
+            // Append the new div to the chat messages or any other desired location
+            chatMessages.appendChild(newWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+             // Change the opacity of elements with the class 'part2nd' to 1
+            document.querySelectorAll('.part2nd').forEach(element => {
+                element.style.opacity = '1';
+            });
+
+        } else {
+            alert('Error updating table: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating table');
+    });
+
+}
+
+
+function generateExcel() {
+    // Get the content of the current message
+    const messageWrapper = this.closest('.message-wrapper');
+    const answerContent = messageWrapper.querySelector('.message-content');
+    const suggestionWrapper = messageWrapper.nextElementSibling;
+    const suggestionContent = suggestionWrapper ? suggestionWrapper.querySelector('.message-content') : null;
+
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
+
+    // Function to convert HTML table to worksheet
+    function html_to_sheet(element) {
+        const table = element.querySelector('table');
+        if (table) {
+            return XLSX.utils.table_to_sheet(table);
+        } else {
+            // If no table, create a sheet with the text content
+            return XLSX.utils.aoa_to_sheet([[element.textContent]]);
+        }
+    }
+
+    // Create worksheets from the HTML content
+    const wsAnswer = html_to_sheet(answerContent);
+    XLSX.utils.book_append_sheet(wb, wsAnswer, "Answer");
+
+    if (suggestionContent) {
+        const wsSuggestion = html_to_sheet(suggestionContent);
+        XLSX.utils.book_append_sheet(wb, wsSuggestion, "Suggestion");
+    }
+
+    // Generate Excel file
+    XLSX.writeFile(wb, 'report.xlsx');
+}
+function generatePDF() {
+    // Get the content of the current message
+    const messageWrapper = this.closest('.message-wrapper');
+    const answerContent = messageWrapper.querySelector('.message-content').innerHTML;
+    const suggestionWrapper = messageWrapper.nextElementSibling;
+    const suggestionContent = suggestionWrapper ? suggestionWrapper.querySelector('.message-content').innerHTML : '';
+
+    // Create a new jsPDF instance
+    const pdf = new jsPDF();
+
+    // Add content to the PDF
+    pdf.fromHTML(answerContent, 15, 15);
+    if (suggestionContent) {
+        pdf.addPage();
+        pdf.fromHTML(suggestionContent, 15, 15);
+    }
+
+    // Save the PDF
+    pdf.save('report.pdf');
+}
+
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    
+        document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('report-btn')) {
+        // Handle report button click
+        console.log('Report button clicked');
+        // You can add your report functionality here
+        alert('Report functionality will be implemented here.');
+    } 
+});
+        function createNewChat(firstMessage) {
+            const chatId = Date.now().toString();
+            currentChatId = chatId;
+            chats[chatId] = {
+                id: chatId,
+                name: firstMessage,
+                messages: []
+            };
+            saveChats();
+            updateChatHistory();
+        }
+    
+        function saveChats() {
+            localStorage.setItem('chats', JSON.stringify(chats));
+        }
+    
+        function updateChatHistory() {
+    chatHistory.innerHTML = '';
+    Object.values(chats).forEach(chat => {
+        const chatElement = document.createElement('div');
+        chatElement.className = 'history-item';
+        
+        const chatName = document.createElement('span');
+        chatName.textContent = chat.name;
+        chatName.onclick = () => loadChat(chat.id);
+        
+        const deleteButton = document.createElement('span');
+        deleteButton.className = 'delete-chat';
+        deleteButton.innerHTML = '&times;'; // This creates an "×" symbol
+        deleteButton.onclick = (e) => {
+            e.stopPropagation();
+            deleteChat(chat.id);
+        };
+        
+        chatElement.appendChild(chatName);
+        chatElement.appendChild(deleteButton);
+        chatHistory.appendChild(chatElement);
+    });
+}
+    
+        function loadChat(chatId) {
+            currentChatId = chatId;
+            chatMessages.innerHTML = '';
+            chats[chatId].messages.forEach(msg => {
+                addMessage(msg.content, msg.role === 'user', false);
+            });
+        }
+
+        function formatResponse(text) {
+    // Replace code blocks with syntax-highlighted versions
+    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, language, code) {
+        language = language || 'plaintext';
+        return `<pre><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>`;
+    });
+
+    // Format inline code
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Convert newlines to <br> tags
+    text = text.replace(/\n/g, '<br>');
+
+    return text;
+}
+async function createChatCompletion(message) {
+    try {
+        console.log('Sending request to server...');
+        latestMessage = message;
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message }),
+        });
+        console.log('Received response from server:', response);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Parsed response data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error creating chat completion:', error);
+        throw error;
+    }
+}
+
+async function createdqCompletion() {
+    try {
+        console.log('Sending request to server...');
+        latestMessage = 'message';
+        const response = await fetch('/api/dqcheck', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log('Received response from server:', response);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Parsed response data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error creating chat completion:', error);
+        throw error;
+    }
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+        function deleteChat(chatId) {
+            delete chats[chatId];
+            saveChats();
+            updateChatHistory();
+            if (currentChatId === chatId) {
+                currentChatId = null;
+                chatMessages.innerHTML = '';
+                chatInput.value = '';
+                showWelcomeMessage();
+            }
+        }
+    
+        function showWelcomeMessage() {
+            welcmMessg.innerHTML = `
+        <div class="message-system">
+            
+            <div class="welcome-content">
+            <p><b>REMS Agentic AI: Data Governance Agents Team.👋</b><br><br>
+            <p class="part1st">     1. DQ Analytical Agent performs data quality checks following earlier defined set of rules and identifies data issues.<br>
+                                    2. DQ Execution Agent creates necessary data change recommendations and obtains approval to act from Data Governance stakeholders. 
+            </p>
+            <p class="part2nd">     3. User approves to have the recommendations executed. DQ Execution Agent goes into Property Hub and adjusts the identified fields.<br>
+                                    4. DQ Execution Agent reports back on the changes applied and DQ Analytical Agent performs data quality chack again to validate the data quality checks again <br> to validate the issues have been resolved.
+            </p>  
+            </p>
+        </div>
+        <button onclick="runDQCheck()">Run DQ Check for all rules</button>
+        
+        
+    </div>
+    `;
+}
+        function displayTable(tableData) {
+    const outerContainer = document.createElement('div');
+    outerContainer.style.maxWidth = '800px';
+    outerContainer.style.margin = '0 auto';
+
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-container';
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+
+    // Create table header
+    const headerRow = document.createElement('tr');
+    Object.keys(tableData.data[0]).forEach(key => {
+        const th = document.createElement('th');
+        th.textContent = key.replace(/_/g, ' ');
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    table.appendChild(tbody);
+
+    // Pagination variables
+    const rowsPerPage = 7;
+    let currentPage = 1;
+    const totalPages = Math.ceil(tableData.data.length / rowsPerPage);
+
+    function displayTablePage(page) {
+        tbody.innerHTML = '';
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = tableData.data.slice(start, end);
+
+        pageData.forEach(row => {
+            const tr = document.createElement('tr');
+            Object.values(row).forEach(value => {
+                const td = document.createElement('td');
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updatePagination() {
+        paginationDiv.innerHTML = `
+            <button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">←</button>
+            <span>Page ${currentPage} of ${totalPages}</span>
+            <button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">→</button>
+        `;
+    }
+
+    // Initial display
+    displayTablePage(currentPage);
+
+    // Create pagination controls
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'pagination';
+    updatePagination();
+
+    // Add table to table container
+    tableContainer.appendChild(table);
+
+    // Add table container and pagination to outer container
+    outerContainer.appendChild(tableContainer);
+    outerContainer.appendChild(paginationDiv);
+
+    // Add outer container to chat messages
+    return outerContainer;
+}
+function toggleWelcomeMessage() {
+    const welcomeMessage = document.querySelector('.welcome-message');
+    welcomeMessage.classList.toggle('expanded');
+}
+    
+        newChatBtn.addEventListener('click', () => {
+            currentChatId = null;
+            chatMessages.innerHTML = '';
+            chatInput.value = '';
+            showWelcomeMessage();
+        });
+    
+        updateChatHistory();
+        
+        
+        if (!currentChatId) {
+            showWelcomeMessage();
+        }
+
+        let isResizing = false;
+        sidebar.addEventListener('mousedown', (e) => {
+            if (e.offsetX > sidebar.offsetWidth - 11) {
+                isResizing = true;
+            }
+        });
+    
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            sidebar.style.width = e.clientX + 'px';
+        });
+    
+        document.addEventListener('mouseup', () => {
+            isResizing = false;
+        });
+
+        async function runDQCheck() {
+           
+			if (!currentChatId) {
+            createNewChat('Running all DQ Checks');
+        }
+           
+           
+             addMessage('Running all DQ Checks', true);
+        chatInput.value = '';
+                
+                const loadingContainer = document.createElement('div');
+loadingContainer.className = 'message system loading-container';
+loadingContainer.innerHTML = `
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Searching through the database...</div>
+`;
+                chatMessages.appendChild(loadingContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                const loadingTexts = [
+                    "Searching through the database...",
+                    "Querying the database...",
+                    "Analyzing results...",
+                    "Preparing response..."
+                ];
+                let textIndex = 0;
+
+                const textInterval = setInterval(() => {
+                    loadingContainer.querySelector('.loading-text').textContent = loadingTexts[textIndex];
+                    textIndex = (textIndex + 1) % loadingTexts.length;
+                }, 1000);
+
+                try{
+            console.log('Calling createChatCompletion');
+            const streamingResponse = await createdqCompletion();
+            console.log('Received response:', streamingResponse.answer);
+            console.log('Received suggestion:', streamingResponse.suggestion);
+            // Remove loading animation
+            clearInterval(textInterval);
+            loadingContainer.remove();
+            
+            addMessage(streamingResponse);
+                } catch (error) {
+                    // Remove loading animation
+                    clearInterval(textInterval);
+                    loadingContainer.remove();
+                    
+                    addMessage("Sorry, there was an error processing your request.");
+                    console.error('Error:', error);
+                }
+
+
+            
+        }
+  
+    </script>
+</body>
+</html>
